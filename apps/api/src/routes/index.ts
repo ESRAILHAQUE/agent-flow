@@ -1,12 +1,14 @@
 import { Router, Request, Response } from 'express';
 import authRoutes from '../modules/auth/auth.routes.js';
 import orgRoutes from '../modules/org/org.routes.js';
+import { agentRoutes } from '../modules/agent/agent.routes.js';
 
 const router: Router = Router();
 
 // Mount modules
 router.use('/auth', authRoutes);
 router.use('/org', orgRoutes);
+router.use('/agents', agentRoutes);
 
 /**
  * Health check endpoint

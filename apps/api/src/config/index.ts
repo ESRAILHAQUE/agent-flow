@@ -35,6 +35,7 @@ export const config = {
     provider: process.env.LLM_PROVIDER || 'openrouter',
     openaiApiKey: process.env.OPENAI_API_KEY || '',
     openrouterApiKey: process.env.OPENROUTER_API_KEY || '',
+    tavilyApiKey: process.env.TAVILY_API_KEY || '',
   },
 
   // Qdrant

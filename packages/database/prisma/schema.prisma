@@ -104,6 +104,7 @@ model User {
   teamMembers    TeamMember[]
   conversations  Conversation[]
   leads          Lead[]           @relation("LeadCreator")
+  createdAgents  Agent[]          @relation("AgentCreator")
 
   // Tokens
   verificationToken   String?   @unique
@@ -138,6 +139,7 @@ model Organization {
   documents     Document[]
   conversations Conversation[]
   leads         Lead[]
+  agents        Agent[]
   subscription  Subscription?
   usageRecords  UsageRecord[]
 
@@ -244,6 +246,34 @@ model Embedding {
   @@index([documentId])
   @@index([vectorId])
   @@map("embeddings")
+}
+
+// ============================================================
+// Agent
+// ============================================================
+
+model Agent {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  persona     String   @db.Text
+  modelId     String   @default("openrouter/auto")
+  tools       Json     @default("[]")
+  isActive    Boolean  @default(true)
+
+  // Relations
+  orgId       String
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  createdById String
+  createdBy   User     @relation("AgentCreator", fields: [createdById], references: [id], onDelete: Restrict)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([orgId])
+  @@index([createdById])
+  @@map("agents")
 }
 
 // ============================================================
