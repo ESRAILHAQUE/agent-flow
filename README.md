@@ -4,6 +4,24 @@ AgentFlow is a professional-grade, multi-tenant AI Business Automation Platform.
 
 ---
 
+## 🎯 What is the Purpose of AgentFlow?
+
+The primary objective of AgentFlow is to automate operational business tasks using Artificial Intelligence. It eliminates manual labor and time spent on customer support, data analysis, and workflow coordination by utilizing AI agent networks and sequential processing pipelines.
+
+It acts as a centralized control center for companies where multiple users can upload their own proprietary data, build custom chatbots, and assign tasks to specialized AI agents.
+
+---
+
+## 💼 Real-World Use Cases
+
+* **1. Intelligent Customer Support:** Upload company documents (such as refund policies, product specs, or user guides) via the RAG engine to instantiate context-aware chat assistants that resolve inquiries instantly.
+* **2. Automated Multi-Agent Workflows:** Combine multiple agents to execute complex, multi-step tasks. For example: one agent reads customer emails, a second queries database records for lookup, and a third drafts a personalized email response.
+* **3. Lead Qualification & CRM Integration:** Interact with site visitors to understand requirements, gather contact details, and save qualified leads into CRM databases automatically.
+* **4. Enterprise Knowledge Search:** Extract summaries and answer questions from thousands of pages of internal company handbooks, policy guides, and knowledge bases.
+* **5. Departmental Workspace Isolation:** Declare independent team workspaces (e.g., Sales, Marketing, Support) so that each division has access only to their respective file directories, database indexes, and agent configurations.
+
+---
+
 ## 🚀 Key Features
 
 * **Multi-Tenant Organization Architecture:** Independent tenant boundaries with organization level custom settings, subscriptions, and usage analytics.
