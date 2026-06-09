@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import authRoutes from '../modules/auth/auth.routes.js';
 import orgRoutes from '../modules/org/org.routes.js';
 
-const router = Router();
+const router: Router = Router();
 
 // Mount modules
 router.use('/auth', authRoutes);
