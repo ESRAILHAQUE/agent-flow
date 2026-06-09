@@ -1,0 +1,399 @@
+// ============================================================
+// AgentFlow — Prisma Schema
+// Full database schema for the AI Business Automation Platform
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// Enums
+// ============================================================
+
+enum UserRole {
+  SUPER_ADMIN
+  ORG_OWNER
+  TEAM_MEMBER
+}
+
+enum OrgPlan {
+  FREE
+  PRO
+  ENTERPRISE
+}
+
+enum TeamMemberRole {
+  ADMIN
+  MEMBER
+  VIEWER
+}
+
+enum DocumentStatus {
+  PENDING
+  PROCESSING
+  READY
+  ERROR
+}
+
+enum DocumentType {
+  PDF
+  DOCX
+  TXT
+}
+
+enum MessageRole {
+  USER
+  ASSISTANT
+  SYSTEM
+  TOOL
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  QUALIFIED
+  CONVERTED
+  LOST
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  TRIALING
+  INCOMPLETE
+}
+
+enum PaymentStatus {
+  SUCCEEDED
+  PENDING
+  FAILED
+  REFUNDED
+}
+
+enum UsageType {
+  MESSAGE
+  DOCUMENT_UPLOAD
+  TOOL_CALL
+  AGENT_RUN
+}
+
+// ============================================================
+// User
+// ============================================================
+
+model User {
+  id             String    @id @default(cuid())
+  email          String    @unique
+  password       String?
+  name           String
+  avatar         String?
+  role           UserRole  @default(TEAM_MEMBER)
+  emailVerified  Boolean   @default(false)
+  googleId       String?   @unique
+  refreshToken   String?
+
+  // Relations
+  ownedOrgs      Organization[]   @relation("OrgOwner")
+  teamMembers    TeamMember[]
+  conversations  Conversation[]
+  leads          Lead[]           @relation("LeadCreator")
+
+  // Tokens
+  verificationToken   String?   @unique
+  verificationExpiry  DateTime?
+  resetToken          String?   @unique
+  resetTokenExpiry    DateTime?
+
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([email])
+  @@map("users")
+}
+
+// ============================================================
+// Organization
+// ============================================================
+
+model Organization {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  logo        String?
+  plan        OrgPlan   @default(FREE)
+  settings    Json      @default("{}")
+
+  // Relations
+  ownerId     String
+  owner       User      @relation("OrgOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+
+  teams         Team[]
+  documents     Document[]
+  conversations Conversation[]
+  leads         Lead[]
+  subscription  Subscription?
+  usageRecords  UsageRecord[]
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([slug])
+  @@index([ownerId])
+  @@map("organizations")
+}
+
+// ============================================================
+// Team
+// ============================================================
+
+model Team {
+  id      String  @id @default(cuid())
+  name    String
+  orgId   String
+
+  // Relations
+  organization  Organization  @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  members       TeamMember[]
+
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([orgId])
+  @@map("teams")
+}
+
+// ============================================================
+// Team Member
+// ============================================================
+
+model TeamMember {
+  id      String          @id @default(cuid())
+  role    TeamMemberRole  @default(MEMBER)
+
+  // Relations
+  teamId  String
+  team    Team  @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  userId  String
+  user    User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  invitedEmail  String?
+  inviteToken   String?   @unique
+  inviteAccepted Boolean  @default(false)
+
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@unique([teamId, userId])
+  @@index([userId])
+  @@map("team_members")
+}
+
+// ============================================================
+// Document (Knowledge Base)
+// ============================================================
+
+model Document {
+  id        String          @id @default(cuid())
+  name      String
+  type      DocumentType
+  url       String
+  size      Int
+  status    DocumentStatus  @default(PENDING)
+  metadata  Json            @default("{}")
+  error     String?
+
+  // Relations
+  orgId     String
+  organization  Organization  @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  embeddings  Embedding[]
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([orgId])
+  @@index([status])
+  @@map("documents")
+}
+
+// ============================================================
+// Embedding (Vector References)
+// ============================================================
+
+model Embedding {
+  id          String  @id @default(cuid())
+  content     String  @db.Text
+  vectorId    String  @unique
+  chunkIndex  Int
+  metadata    Json    @default("{}")
+
+  // Relations
+  documentId  String
+  document    Document  @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime  @default(now())
+
+  @@index([documentId])
+  @@index([vectorId])
+  @@map("embeddings")
+}
+
+// ============================================================
+// Conversation
+// ============================================================
+
+model Conversation {
+  id         String   @id @default(cuid())
+  title      String   @default("New Conversation")
+  agentType  String   @default("default")
+  metadata   Json     @default("{}")
+
+  // Relations
+  orgId      String
+  organization  Organization  @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  userId     String
+  user       User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  messages   Message[]
+
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([orgId])
+  @@index([userId])
+  @@map("conversations")
+}
+
+// ============================================================
+// Message
+// ============================================================
+
+model Message {
+  id             String       @id @default(cuid())
+  role           MessageRole
+  content        String       @db.Text
+  tokens         Int          @default(0)
+  toolCalls      Json?
+  toolResults    Json?
+  metadata       Json         @default("{}")
+
+  // Relations
+  conversationId String
+  conversation   Conversation  @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  createdAt      DateTime     @default(now())
+
+  @@index([conversationId])
+  @@map("messages")
+}
+
+// ============================================================
+// Lead (CRM)
+// ============================================================
+
+model Lead {
+  id       String      @id @default(cuid())
+  name     String
+  email    String?
+  phone    String?
+  company  String?
+  status   LeadStatus  @default(NEW)
+  source   String?
+  notes    String?     @db.Text
+  metadata Json        @default("{}")
+
+  // Relations
+  orgId    String
+  organization  Organization  @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  createdById  String?
+  createdBy    User?   @relation("LeadCreator", fields: [createdById], references: [id], onDelete: SetNull)
+
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([orgId])
+  @@index([status])
+  @@index([email])
+  @@map("leads")
+}
+
+// ============================================================
+// Subscription
+// ============================================================
+
+model Subscription {
+  id                  String              @id @default(cuid())
+  plan                OrgPlan             @default(FREE)
+  status              SubscriptionStatus  @default(ACTIVE)
+  stripeCustomerId    String?             @unique
+  stripeSubscriptionId String?            @unique
+  stripePriceId       String?
+  currentPeriodStart  DateTime?
+  currentPeriodEnd    DateTime?
+
+  // Relations
+  orgId     String    @unique
+  organization  Organization  @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  payments  Payment[]
+
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@map("subscriptions")
+}
+
+// ============================================================
+// Payment
+// ============================================================
+
+model Payment {
+  id              String         @id @default(cuid())
+  amount          Int
+  currency        String         @default("usd")
+  status          PaymentStatus  @default(PENDING)
+  stripePaymentId String?        @unique
+  invoiceUrl      String?
+  metadata        Json           @default("{}")
+
+  // Relations
+  subscriptionId  String
+  subscription    Subscription  @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  createdAt  DateTime  @default(now())
+
+  @@index([subscriptionId])
+  @@map("payments")
+}
+
+// ============================================================
+// Usage Record
+// ============================================================
+
+model UsageRecord {
+  id     String     @id @default(cuid())
+  type   UsageType
+  count  Int        @default(0)
+  month  String     // Format: "2024-01"
+
+  // Relations
+  orgId  String
+  organization  Organization  @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@unique([orgId, type, month])
+  @@index([orgId])
+  @@map("usage_records")
+}
