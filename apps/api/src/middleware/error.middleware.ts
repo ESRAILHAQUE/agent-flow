@@ -26,7 +26,7 @@ export function errorHandler(
   _next: NextFunction,
 ): void {
   // Default values
-  let statusCode = HTTP_STATUS.INTERNAL_SERVER_ERROR;
+  let statusCode: number = HTTP_STATUS.INTERNAL_SERVER_ERROR;
   let message = 'Internal Server Error';
 
   if (err instanceof AppError) {
