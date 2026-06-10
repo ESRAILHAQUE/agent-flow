@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import authRoutes from '../modules/auth/auth.routes.js';
 import orgRoutes from '../modules/org/org.routes.js';
 import { agentRoutes } from '../modules/agent/agent.routes.js';
+import { knowledgeRoutes } from '../modules/knowledge/knowledge.routes.js';
 
 const router: Router = Router();
 
@@ -9,6 +10,7 @@ const router: Router = Router();
 router.use('/auth', authRoutes);
 router.use('/org', orgRoutes);
 router.use('/agents', agentRoutes);
+router.use('/knowledge', knowledgeRoutes);
 
 /**
  * Health check endpoint

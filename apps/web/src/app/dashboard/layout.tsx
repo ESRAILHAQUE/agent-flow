@@ -19,7 +19,8 @@ import {
   ChevronRight,
   Menu,
   X,
-  Terminal
+  Terminal,
+  Database
 } from 'lucide-react';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -45,6 +46,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const navItems = [
     { name: 'Overview', href: '/dashboard', icon: LayoutDashboard },
     { name: 'AI Agents', href: '/dashboard/agents', icon: Terminal },
+    { name: 'Knowledge Base', href: '/dashboard/knowledge', icon: Database },
     { name: 'Workspaces', href: '/dashboard/workspaces', icon: Layers },
     { name: 'Organization Settings', href: '/dashboard/settings', icon: Settings },
   ];

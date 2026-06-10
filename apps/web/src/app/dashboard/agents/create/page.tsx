@@ -70,8 +70,8 @@ export default function CreateAgentPage() {
 
   const availableTools = [
     { id: 'web_search', name: 'Web Search', description: 'Allow agent to search the internet for real-time information.' },
-    { id: 'qdrant_kb', name: 'Knowledge Base', description: 'Access uploaded company documents via Qdrant.' },
-    { id: 'send_email', name: 'Email Sender', description: 'Allow agent to send emails to customers or team members.' },
+    { id: 'knowledge_search', name: 'Knowledge Search', description: 'Access uploaded company documents from the organization knowledge base.' },
+    { id: 'email_sender', name: 'Email Sender', description: 'Allow agent to send emails to customers or team members.' },
   ];
 
   return (
