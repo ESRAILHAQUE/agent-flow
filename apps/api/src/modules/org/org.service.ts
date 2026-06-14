@@ -237,4 +237,45 @@ export class OrgService {
       }),
     ]);
   }
+
+  /**
+   * Get Analytics stats for an organization
+   */
+  static async getAnalytics(orgId: string) {
+    const [
+      totalAgents,
+      totalConversations,
+      totalMessages,
+      totalDocuments,
+      totalWorkflows,
+      recentConversations,
+    ] = await Promise.all([
+      prisma.agent.count({ where: { orgId } }),
+      prisma.conversation.count({ where: { orgId } }),
+      prisma.message.count({ where: { conversation: { orgId } } }),
+      prisma.document.count({ where: { orgId } }),
+      prisma.workflow.count({ where: { orgId } }),
+      prisma.conversation.findMany({
+        where: { orgId },
+        orderBy: { updatedAt: 'desc' },
+        take: 5,
+        select: {
+          id: true,
+          title: true,
+          agentType: true,
+          updatedAt: true,
+          _count: { select: { messages: true } },
+        },
+      }),
+    ]);
+
+    return {
+      totalAgents,
+      totalConversations,
+      totalMessages,
+      totalDocuments,
+      totalWorkflows,
+      recentConversations,
+    };
+  }
 }

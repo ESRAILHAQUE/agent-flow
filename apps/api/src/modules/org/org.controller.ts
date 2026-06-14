@@ -201,4 +201,22 @@ export class OrgController {
       next(error);
     }
   }
+
+  /**
+   * GET /api/org/analytics
+   */
+  static async getAnalytics(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const orgId = req.orgId;
+      if (!orgId) {
+        res.status(HTTP_STATUS.BAD_REQUEST).json({ success: false, error: 'No active organization context found' });
+        return;
+      }
+
+      const analytics = await OrgService.getAnalytics(orgId);
+      res.status(HTTP_STATUS.OK).json({ success: true, data: analytics });
+    } catch (error) {
+      next(error);
+    }
+  }
 }

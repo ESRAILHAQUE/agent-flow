@@ -13,6 +13,7 @@ router.use(authenticate);
 // Organization management
 router.get('/', requireOrg, OrgController.getMyOrganization);
 router.put('/', requireOrg, requireRole(['ORG_OWNER', 'SUPER_ADMIN']), OrgController.updateOrganization);
+router.get('/analytics', requireOrg, OrgController.getAnalytics);
 
 // Workspace (Team) Management
 router.get('/workspaces', requireOrg, OrgController.getWorkspaces);

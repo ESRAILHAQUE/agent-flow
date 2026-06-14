@@ -101,6 +101,22 @@ export const orgApi = createApi({
         body,
       }),
     }),
+    getAnalytics: builder.query<ApiResponse<{
+      totalAgents: number;
+      totalConversations: number;
+      totalMessages: number;
+      totalDocuments: number;
+      totalWorkflows: number;
+      recentConversations: Array<{
+        id: string;
+        title: string;
+        agentType: string;
+        updatedAt: string;
+        _count: { messages: number };
+      }>;
+    }>, void>({
+      query: () => '/org/analytics',
+    }),
   }),
 });
 
@@ -113,4 +129,5 @@ export const {
   useGetWorkspaceMembersQuery,
   useInviteMemberMutation,
   useAcceptInviteMutation,
+  useGetAnalyticsQuery,
 } = orgApi;

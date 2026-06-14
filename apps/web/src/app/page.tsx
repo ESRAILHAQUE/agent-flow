@@ -1,8 +1,15 @@
+'use client';
+
 import React from 'react';
 import Link from 'next/link';
+import { useSelector } from 'react-redux';
+import type { RootState } from '@/store';
 import { ShieldCheck, ArrowRight, Terminal, Layers, Users, Zap, Database } from 'lucide-react';
 
 export default function Home() {
+  const { isAuthenticated, user, isLoading } = useSelector((state: RootState) => state.auth);
+  const dashboardLink = user?.role === 'SUPER_ADMIN' ? '/admin' : '/dashboard';
+
   return (
     <div className="relative min-h-screen bg-zinc-950 text-zinc-50 overflow-hidden flex flex-col font-sans">
       {/* Background Gradients */}
@@ -20,18 +27,29 @@ export default function Home() {
           </span>
         </div>
         <div className="flex items-center gap-4">
-          <Link
-            href="/login"
-            className="px-4 py-2 text-sm font-semibold text-zinc-400 hover:text-zinc-200 transition-colors"
-          >
-            Sign In
-          </Link>
-          <Link
-            href="/register"
-            className="px-4.5 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-500 rounded-xl transition-all shadow-md shadow-blue-500/10"
-          >
-            Get Started
-          </Link>
+          {!isLoading && isAuthenticated ? (
+            <Link
+              href={dashboardLink}
+              className="px-4.5 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-500 rounded-xl transition-all shadow-md shadow-blue-500/10"
+            >
+              {user?.role === 'SUPER_ADMIN' ? 'Admin Panel' : 'Dashboard'}
+            </Link>
+          ) : !isLoading ? (
+            <>
+              <Link
+                href="/login"
+                className="px-4 py-2 text-sm font-semibold text-zinc-400 hover:text-zinc-200 transition-colors"
+              >
+                Sign In
+              </Link>
+              <Link
+                href="/register"
+                className="px-4.5 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-500 rounded-xl transition-all shadow-md shadow-blue-500/10"
+              >
+                Get Started
+              </Link>
+            </>
+          ) : null}
         </div>
       </header>
 
@@ -54,20 +72,32 @@ export default function Home() {
         </p>
 
         {/* CTA Buttons */}
-        <div className="flex flex-col sm:flex-row items-center gap-4 pt-4 w-full sm:w-auto">
-          <Link
-            href="/register"
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl transition-all shadow-lg shadow-blue-500/20"
-          >
-            <span>Launch Platform</span>
-            <ArrowRight className="h-4 w-4" />
-          </Link>
-          <Link
-            href="/login"
-            className="w-full sm:w-auto inline-flex items-center justify-center px-7 py-3.5 bg-zinc-900 border border-zinc-850 hover:bg-zinc-800 text-zinc-350 hover:text-zinc-200 font-semibold rounded-xl transition-all"
-          >
-            Sign In to Dashboard
-          </Link>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4 w-full sm:w-auto">
+          {!isLoading && isAuthenticated ? (
+            <Link
+              href={dashboardLink}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl transition-all shadow-lg shadow-blue-500/20"
+            >
+              <span>Go to {user?.role === 'SUPER_ADMIN' ? 'Admin Panel' : 'Dashboard'}</span>
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          ) : !isLoading ? (
+            <>
+              <Link
+                href="/register"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl transition-all shadow-lg shadow-blue-500/20"
+              >
+                <span>Launch Platform</span>
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+              <Link
+                href="/login"
+                className="w-full sm:w-auto inline-flex items-center justify-center px-7 py-3.5 bg-zinc-900 border border-zinc-850 hover:bg-zinc-800 text-zinc-350 hover:text-zinc-200 font-semibold rounded-xl transition-all"
+              >
+                Sign In to Dashboard
+              </Link>
+            </>
+          ) : null}
         </div>
 
         {/* Features Grid */}

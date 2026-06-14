@@ -10,12 +10,13 @@ import { useRegisterMutation } from '@/store/services/authApi';
 import { useDispatch } from 'react-redux';
 import { setCredentials } from '@/store/slices/authSlice';
 import { toast } from 'react-hot-toast';
-import { Loader2, User, Mail, Lock, ShieldCheck } from 'lucide-react';
+import { Loader2, User, Mail, Lock, ShieldCheck, Eye, EyeOff } from 'lucide-react';
 
 export default function RegisterPage() {
   const router = useRouter();
   const dispatch = useDispatch();
   const [registerUser, { isLoading }] = useRegisterMutation();
+  const [showPassword, setShowPassword] = React.useState(false);
 
   const {
     register,
@@ -120,11 +121,18 @@ export default function RegisterPage() {
                   <Lock className="h-5 w-5" />
                 </span>
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
                   {...register('password')}
-                  className="w-full pl-11 pr-4 py-3 bg-zinc-900 border border-zinc-800 rounded-xl text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                  className="w-full pl-11 pr-12 py-3 bg-zinc-900 border border-zinc-800 rounded-xl text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 flex items-center pr-3.5 text-zinc-500 hover:text-zinc-300 transition-colors"
+                >
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
               </div>
               {errors.password && (
                 <p className="mt-1.5 text-xs text-red-500">{errors.password.message}</p>

@@ -3,6 +3,9 @@ import authRoutes from '../modules/auth/auth.routes.js';
 import orgRoutes from '../modules/org/org.routes.js';
 import { agentRoutes } from '../modules/agent/agent.routes.js';
 import { knowledgeRoutes } from '../modules/knowledge/knowledge.routes.js';
+import workflowRoutes from '../modules/workflow/workflow.routes.js';
+import leadsRoutes from '../modules/leads/leads.routes.js';
+import adminRoutes from '../modules/admin/admin.routes.js';
 
 const router: Router = Router();
 
@@ -11,6 +14,9 @@ router.use('/auth', authRoutes);
 router.use('/org', orgRoutes);
 router.use('/agents', agentRoutes);
 router.use('/knowledge', knowledgeRoutes);
+router.use('/workflows', workflowRoutes);
+router.use('/leads', leadsRoutes);
+router.use('/admin', adminRoutes);
 
 /**
  * Health check endpoint

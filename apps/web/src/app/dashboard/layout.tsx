@@ -47,11 +47,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { name: 'Overview', href: '/dashboard', icon: LayoutDashboard },
     { name: 'AI Agents', href: '/dashboard/agents', icon: Terminal },
     { name: 'Knowledge Base', href: '/dashboard/knowledge', icon: Database },
-    { name: 'Workspaces', href: '/dashboard/workspaces', icon: Layers },
+    { name: 'Leads & CRM', href: '/dashboard/leads', icon: Users },
+    { name: 'Workflows', href: '/dashboard/workflows', icon: Layers },
+    { name: 'Workspaces', href: '/dashboard/workspaces', icon: Users },
     { name: 'Organization Settings', href: '/dashboard/settings', icon: Settings },
   ];
-
-  if (!user) return null;
 
   return (
     <AuthGuard>

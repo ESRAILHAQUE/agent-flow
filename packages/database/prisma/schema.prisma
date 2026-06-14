@@ -105,6 +105,7 @@ model User {
   conversations  Conversation[]
   leads          Lead[]           @relation("LeadCreator")
   createdAgents  Agent[]          @relation("AgentCreator")
+  createdWorkflows Workflow[]     @relation("WorkflowCreator")
 
   // Tokens
   verificationToken   String?   @unique
@@ -140,6 +141,7 @@ model Organization {
   conversations Conversation[]
   leads         Lead[]
   agents        Agent[]
+  workflows     Workflow[]
   subscription  Subscription?
   usageRecords  UsageRecord[]
 
@@ -426,4 +428,65 @@ model UsageRecord {
   @@unique([orgId, type, month])
   @@index([orgId])
   @@map("usage_records")
+}
+
+// ============================================================
+// Workflow (Visual Builder)
+// ============================================================
+
+model Workflow {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  isActive    Boolean  @default(true)
+
+  // React Flow state
+  viewport    Json     @default("{\"x\":0,\"y\":0,\"zoom\":1}")
+
+  // Relations
+  orgId       String
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  createdById String
+  createdBy   User     @relation("WorkflowCreator", fields: [createdById], references: [id], onDelete: Restrict)
+
+  nodes       WorkflowNode[]
+  edges       WorkflowEdge[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([orgId])
+  @@index([createdById])
+  @@map("workflows")
+}
+
+model WorkflowNode {
+  id          String   @id @default(cuid()) // Matches React Flow node id
+  type        String   // "agent", "trigger", "condition", etc.
+  positionX   Float
+  positionY   Float
+  data        Json     @default("{}") // Stores selected agentId, configs, etc.
+
+  // Relations
+  workflowId  String
+  workflow    Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@index([workflowId])
+  @@map("workflow_nodes")
+}
+
+model WorkflowEdge {
+  id          String   @id @default(cuid()) // Matches React Flow edge id
+  sourceId    String   // Source node id
+  targetId    String   // Target node id
+  sourceHandle String?
+  targetHandle String?
+
+  // Relations
+  workflowId  String
+  workflow    Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@index([workflowId])
+  @@map("workflow_edges")
 }

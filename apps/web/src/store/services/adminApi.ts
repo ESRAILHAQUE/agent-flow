@@ -1,0 +1,74 @@
+import { createApi } from '@reduxjs/toolkit/query/react';
+import { baseQueryWithReauth } from './apiSlice';
+
+export interface AdminStats {
+  totalOrganizations: number;
+  totalUsers: number;
+  totalAgents: number;
+  totalConversations: number;
+  totalMessages: number;
+  totalDocuments: number;
+  recentOrgs: AdminOrg[];
+}
+
+export interface AdminOrg {
+  id: string;
+  name: string;
+  slug: string;
+  plan: string;
+  createdAt: string;
+  owner: { name: string; email: string };
+  _count: { agents: number; conversations: number; documents: number };
+  subscription: { plan: string; status: string } | null;
+}
+
+export interface AdminUser {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  emailVerified: boolean;
+  createdAt: string;
+  ownedOrgs: { id: string; name: string; plan: string }[];
+}
+
+export const adminApi = createApi({
+  reducerPath: 'adminApi',
+  baseQuery: baseQueryWithReauth,
+  tagTypes: ['AdminStats', 'AdminOrg', 'AdminUser'],
+  endpoints: (builder) => ({
+    getSystemStats: builder.query<{ success: boolean; data: AdminStats }, void>({
+      query: () => '/admin/stats',
+      providesTags: ['AdminStats'],
+    }),
+    getAllOrganizations: builder.query<{ success: boolean; data: AdminOrg[]; meta: any }, { page?: number }>({
+      query: ({ page = 1 } = {}) => `/admin/organizations?page=${page}&limit=20`,
+      providesTags: ['AdminOrg'],
+    }),
+    getAllUsers: builder.query<{ success: boolean; data: AdminUser[]; meta: any }, { page?: number }>({
+      query: ({ page = 1 } = {}) => `/admin/users?page=${page}&limit=20`,
+      providesTags: ['AdminUser'],
+    }),
+    deleteOrganization: builder.mutation<{ success: boolean }, string>({
+      query: (id) => ({ url: `/admin/organizations/${id}`, method: 'DELETE' }),
+      invalidatesTags: ['AdminOrg', 'AdminStats'],
+    }),
+    updateOrgPlan: builder.mutation<{ success: boolean; data: any }, { id: string; plan: string }>({
+      query: ({ id, plan }) => ({ url: `/admin/organizations/${id}/plan`, method: 'PUT', body: { plan } }),
+      invalidatesTags: ['AdminOrg'],
+    }),
+    updateUserRole: builder.mutation<{ success: boolean; data: any }, { id: string; role: string }>({
+      query: ({ id, role }) => ({ url: `/admin/users/${id}/role`, method: 'PUT', body: { role } }),
+      invalidatesTags: ['AdminUser'],
+    }),
+  }),
+});
+
+export const {
+  useGetSystemStatsQuery,
+  useGetAllOrganizationsQuery,
+  useGetAllUsersQuery,
+  useDeleteOrganizationMutation,
+  useUpdateOrgPlanMutation,
+  useUpdateUserRoleMutation,
+} = adminApi;

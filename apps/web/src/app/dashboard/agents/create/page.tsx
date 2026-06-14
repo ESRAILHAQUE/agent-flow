@@ -72,6 +72,7 @@ export default function CreateAgentPage() {
     { id: 'web_search', name: 'Web Search', description: 'Allow agent to search the internet for real-time information.' },
     { id: 'knowledge_search', name: 'Knowledge Search', description: 'Access uploaded company documents from the organization knowledge base.' },
     { id: 'email_sender', name: 'Email Sender', description: 'Allow agent to send emails to customers or team members.' },
+    { id: 'create_lead', name: 'CRM: Create Lead', description: 'Automatically capture leads from conversations and save them to the CRM.' },
   ];
 
   return (

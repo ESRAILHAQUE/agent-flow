@@ -46,6 +46,7 @@ export class ChatService {
       const hasWebSearch = agentTools.some(t => t.name === 'web_search');
       const hasEmailSender = agentTools.some(t => t.name === 'email_sender');
       const hasKnowledgeSearch = agentTools.some(t => t.name === 'knowledge_search');
+      const hasCrm = agentTools.some(t => t.name === 'create_lead');
       
       const tools: OpenAI.Chat.Completions.ChatCompletionTool[] = [];
       
@@ -102,6 +103,28 @@ export class ChatService {
         });
       }
 
+      if (hasCrm) {
+        tools.push({
+          type: "function",
+          function: {
+            name: "create_lead",
+            description: "Create a new CRM lead when a potential customer shows interest. Extract their name, email, phone, company from the conversation.",
+            parameters: {
+              type: "object",
+              properties: {
+                name: { type: "string", description: "Full name of the lead" },
+                email: { type: "string", description: "Email address" },
+                phone: { type: "string", description: "Phone number" },
+                company: { type: "string", description: "Company name" },
+                source: { type: "string", description: "How the lead was acquired (e.g. 'Chat Widget', 'Email')" },
+                notes: { type: "string", description: "Any relevant notes from the conversation" },
+              },
+              required: ["name"],
+            },
+          },
+        });
+      }
+
       const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
         { role: 'system', content: agent.persona },
         { role: 'user', content: message }
@@ -121,6 +144,8 @@ export class ChatService {
         messages.push(responseMessage); // Add assistant's tool call request to history
 
         for (const toolCall of responseMessage.tool_calls) {
+          if (toolCall.type !== 'function') continue;
+
           if (toolCall.function.name === 'web_search') {
             try {
               const args = JSON.parse(toolCall.function.arguments);
@@ -190,6 +215,38 @@ export class ChatService {
                 role: 'tool',
                 tool_call_id: toolCall.id,
                 content: "Error: Failed to search the knowledge base.",
+              });
+            }
+          }
+          else if (toolCall.function.name === 'create_lead') {
+            try {
+              const args = JSON.parse(toolCall.function.arguments);
+              console.log(`[Agent Tool Execution] Creating Lead for: "${args.name}"`);
+              
+              const lead = await prisma.lead.create({
+                data: {
+                  name: args.name,
+                  email: args.email,
+                  phone: args.phone,
+                  company: args.company,
+                  source: args.source || 'AI Chat',
+                  notes: args.notes,
+                  status: 'NEW',
+                  orgId,
+                },
+              });
+
+              messages.push({
+                role: 'tool',
+                tool_call_id: toolCall.id,
+                content: `Success: Lead created for ${lead.name} (ID: ${lead.id}).`,
+              });
+            } catch (err) {
+              console.error('Lead creation failed:', err);
+              messages.push({
+                role: 'tool',
+                tool_call_id: toolCall.id,
+                content: "Error: Failed to create the lead.",
               });
             }
           }
