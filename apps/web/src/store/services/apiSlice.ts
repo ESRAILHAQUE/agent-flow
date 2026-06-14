@@ -6,6 +6,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/a
 
 const baseQuery = fetchBaseQuery({
   baseUrl: API_BASE_URL,
+  credentials: 'include',
   prepareHeaders: (headers, { getState }) => {
     const token = (getState() as RootState).auth.accessToken;
     if (token) {

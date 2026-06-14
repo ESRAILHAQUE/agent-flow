@@ -4,6 +4,7 @@ import React from 'react';
 import { Provider } from 'react-redux';
 import { store } from '@/store';
 import { Toaster } from 'react-hot-toast';
+import { SessionProvider } from '@/components/session-provider';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
@@ -15,7 +16,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
           duration: 4000,
         }}
       />
-      {children}
+      <SessionProvider>
+        {children}
+      </SessionProvider>
     </Provider>
   );
 }

@@ -12,7 +12,7 @@ const initialState: AuthState = {
   user: null,
   accessToken: null,
   isAuthenticated: false,
-  isLoading: false,
+  isLoading: true,
 };
 
 export const authSlice = createSlice({
@@ -21,10 +21,12 @@ export const authSlice = createSlice({
   reducers: {
     setCredentials: (
       state,
-      action: PayloadAction<{ user: UserProfile; accessToken: string }>,
+      action: PayloadAction<{ user: UserProfile; accessToken?: string }>,
     ) => {
       state.user = action.payload.user;
-      state.accessToken = action.payload.accessToken;
+      if (action.payload.accessToken) {
+        state.accessToken = action.payload.accessToken;
+      }
       state.isAuthenticated = true;
       state.isLoading = false;
     },
