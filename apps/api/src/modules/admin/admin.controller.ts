@@ -331,6 +331,35 @@ export const getAuditLogs = async (req: Request, res: Response) => {
 };
 
 /**
+ * GET /api/admin/stats/abuse
+ */
+export const getAbuseStats = async (req: Request, res: Response) => {
+  // Aggregate tokens from Messages grouped by OrgId
+  const messages = await prisma.message.groupBy({
+    by: ['id'], // Workaround since we can't directly group by relation. We'll group in JS for simplicity or use raw query.
+  });
+
+  // A better way is using a raw query to group tokens by Org (since Message -> Conversation -> Org)
+  const results = await prisma.$queryRaw`
+    SELECT o.id, o.name, SUM(m.tokens) as "totalTokens"
+    FROM "Message" m
+    JOIN "Conversation" c ON m."conversationId" = c.id
+    JOIN "Organization" o ON c."orgId" = o.id
+    GROUP BY o.id, o.name
+    ORDER BY "totalTokens" DESC
+    LIMIT 20
+  `;
+
+  // Convert BigInt to Number (Prisma raw returns BigInt for sums)
+  const formattedResults = (results as any[]).map(r => ({
+    ...r,
+    totalTokens: Number(r.totalTokens || 0)
+  }));
+
+  res.status(HTTP_STATUS.OK).json({ success: true, data: formattedResults });
+};
+
+/**
  * PUT /api/admin/organizations/:id/plan
 
 

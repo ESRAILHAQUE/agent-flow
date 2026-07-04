@@ -9,6 +9,7 @@ router.use(authenticate);
 router.use(requireRole('SUPER_ADMIN'));
 
 router.get('/stats', adminController.getSystemStats);
+router.get('/stats/abuse', adminController.getAbuseStats);
 
 router.get('/organizations', adminController.getAllOrganizations);
 router.delete('/organizations/:id', adminController.deleteOrganization);

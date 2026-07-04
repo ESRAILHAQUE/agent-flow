@@ -132,6 +132,10 @@ export const adminApi = createApi({
       query: ({ page = 1 } = {}) => `/admin/audit-logs?page=${page}&limit=50`,
       providesTags: ['AdminStats'],
     }),
+    getAbuseStats: builder.query<{ success: boolean; data: any[] }, void>({
+      query: () => '/admin/stats/abuse',
+      providesTags: ['AdminStats'],
+    }),
   }),
 });
 
@@ -153,4 +157,5 @@ export const {
   useCreateNotificationMutation,
   useDeleteNotificationMutation,
   useGetAuditLogsQuery,
+  useGetAbuseStatsQuery,
 } = adminApi;
