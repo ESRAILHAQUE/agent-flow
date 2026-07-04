@@ -105,6 +105,9 @@ export const adminApi = createApi({
       query: (id) => ({ url: `/admin/users/${id}/activate`, method: 'POST' }),
       invalidatesTags: ['AdminUser'],
     }),
+    impersonateUser: builder.mutation<{ success: boolean; data: { accessToken: string; user: any }; message: string }, string>({
+      query: (id) => ({ url: `/admin/users/${id}/impersonate`, method: 'POST' }),
+    }),
   }),
 });
 
@@ -119,4 +122,5 @@ export const {
   useUpdateUserRoleMutation,
   useSuspendUserMutation,
   useActivateUserMutation,
+  useImpersonateUserMutation,
 } = adminApi;

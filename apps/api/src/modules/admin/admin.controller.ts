@@ -191,7 +191,72 @@ export const activateUser = async (req: Request, res: Response) => {
 };
 
 /**
+ * POST /api/admin/users/:id/impersonate
+ */
+export const impersonateUser = async (req: Request, res: Response) => {
+  const { id } = req.params as { id: string };
+
+  if (req.user!.id === id) {
+    throw new AppError('You are already logged in as yourself', HTTP_STATUS.BAD_REQUEST);
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id },
+    include: { ownedOrgs: true, teamMembers: { include: { team: true } } },
+  });
+
+  if (!user) throw new AppError('User not found', HTTP_STATUS.NOT_FOUND);
+  if (user.isSuspended) throw new AppError('Cannot impersonate a suspended user', HTTP_STATUS.FORBIDDEN);
+
+  // We need to import token generation utilities
+  const { generateTokens } = await import('../../lib/jwt.js');
+  
+  // Find primary org context
+  const primaryOrgId = user.ownedOrgs.length > 0 
+    ? user.ownedOrgs[0].id 
+    : user.teamMembers.length > 0 
+      ? user.teamMembers[0].team.orgId 
+      : undefined;
+
+  const { accessToken, refreshToken } = generateTokens({
+    id: user.id,
+    email: user.email,
+    role: user.role,
+    orgId: primaryOrgId,
+  });
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { refreshToken },
+  });
+
+  // Set refresh token in cookie similar to login
+  res.cookie('refreshToken', refreshToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  });
+
+  res.status(HTTP_STATUS.OK).json({
+    success: true,
+    data: {
+      accessToken,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        avatar: user.avatar,
+      },
+    },
+    message: `You are now impersonating ${user.name}`,
+  });
+};
+
+/**
  * PUT /api/admin/organizations/:id/plan
+
 
  */
 export const updateOrgPlan = async (req: Request, res: Response) => {

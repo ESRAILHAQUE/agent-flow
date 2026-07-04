@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useGetAllUsersQuery, useUpdateUserRoleMutation, useSuspendUserMutation, useActivateUserMutation } from '@/store/services/adminApi';
+import { useGetAllUsersQuery, useUpdateUserRoleMutation, useSuspendUserMutation, useActivateUserMutation, useImpersonateUserMutation } from '@/store/services/adminApi';
 import { Users, Loader2, ChevronDown, CheckCircle, XCircle } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
@@ -18,9 +18,25 @@ export default function AdminUsersPage() {
   const [updateRole] = useUpdateUserRoleMutation();
   const [suspendUser] = useSuspendUserMutation();
   const [activateUser] = useActivateUserMutation();
+  const [impersonateUser, { isLoading: isImpersonating }] = useImpersonateUserMutation();
+
+  const router = require('next/navigation').useRouter();
+  const dispatch = require('react-redux').useDispatch();
+  const { setCredentials } = require('@/store/slices/authSlice');
 
   const users = data?.data || [];
   const meta = data?.meta;
+
+  const handleImpersonate = async (user: any) => {
+    try {
+      const result = await impersonateUser(user.id).unwrap();
+      dispatch(setCredentials({ user: result.data.user, token: result.data.accessToken }));
+      toast.success(result.message);
+      router.push('/dashboard');
+    } catch (err: any) {
+      toast.error(err?.data?.error || 'Failed to impersonate user');
+    }
+  };
 
   const handleRoleChange = async (id: string, role: string) => {
     try {
@@ -113,7 +129,14 @@ export default function AdminUsersPage() {
                   <td className="px-4 py-4 text-xs text-zinc-500">
                     {new Date(user.createdAt).toLocaleDateString()}
                   </td>
-                  <td className="px-4 py-4 text-right">
+                  <td className="px-4 py-4 text-right flex items-center justify-end gap-2">
+                    <button
+                      onClick={() => handleImpersonate(user)}
+                      disabled={isImpersonating || user.isSuspended}
+                      className="px-3 py-1.5 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 text-xs font-semibold rounded-lg transition-colors border border-blue-500/20 disabled:opacity-50"
+                    >
+                      Login As
+                    </button>
                     {user.isSuspended ? (
                       <button
                         onClick={async () => {

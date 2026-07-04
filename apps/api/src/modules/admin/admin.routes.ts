@@ -18,6 +18,7 @@ router.get('/users', adminController.getAllUsers);
 router.put('/users/:id/role', adminController.updateUserRole);
 router.post('/users/:id/suspend', adminController.suspendUser);
 router.post('/users/:id/activate', adminController.activateUser);
+router.post('/users/:id/impersonate', adminController.impersonateUser);
 
 router.get('/subscriptions', adminController.getAllSubscriptions);
 router.get('/payments', adminController.getAllPayments);
