@@ -99,6 +99,10 @@ model User {
   googleId       String?   @unique
   refreshToken   String?
 
+  // Super Admin Control
+  isSuspended    Boolean   @default(false)
+  suspendReason  String?   @db.Text
+
   // Relations
   ownedOrgs      Organization[]   @relation("OrgOwner")
   teamMembers    TeamMember[]

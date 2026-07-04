@@ -8,7 +8,7 @@ import type { Request } from 'express';
  * Authentication middleware to verify JWT access token.
  * Populates req.user and req.orgId.
  */
-export function authenticate(req: Request, _res: Response, next: NextFunction): void {
+export async function authenticate(req: Request, _res: Response, next: NextFunction): Promise<void> {
   try {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -17,6 +17,20 @@ export function authenticate(req: Request, _res: Response, next: NextFunction): 
 
     const token = authHeader.split(' ')[1];
     const payload = verifyAccessToken(token);
+
+    // Verify user is not suspended (quick db check to ensure immediate blocking)
+    const { prisma } = await import('@agentflow/database');
+    const user = await prisma.user.findUnique({
+      where: { id: payload.id },
+      select: { isSuspended: true, suspendReason: true },
+    });
+
+    if (!user) {
+      throw new AppError('User not found', HTTP_STATUS.UNAUTHORIZED);
+    }
+    if (user.isSuspended) {
+      throw new AppError(`Account suspended: ${user.suspendReason || 'Contact support'}`, HTTP_STATUS.FORBIDDEN);
+    }
 
     req.user = payload;
     req.orgId = payload.orgId;

@@ -28,6 +28,8 @@ export interface AdminUser {
   email: string;
   role: string;
   emailVerified: boolean;
+  isSuspended: boolean;
+  suspendReason: string | null;
   createdAt: string;
   ownedOrgs: { id: string; name: string; plan: string }[];
 }
@@ -95,6 +97,14 @@ export const adminApi = createApi({
       query: ({ id, role }) => ({ url: `/admin/users/${id}/role`, method: 'PUT', body: { role } }),
       invalidatesTags: ['AdminUser'],
     }),
+    suspendUser: builder.mutation<{ success: boolean; data: any }, { id: string; reason?: string }>({
+      query: ({ id, reason }) => ({ url: `/admin/users/${id}/suspend`, method: 'POST', body: { reason } }),
+      invalidatesTags: ['AdminUser'],
+    }),
+    activateUser: builder.mutation<{ success: boolean; data: any }, string>({
+      query: (id) => ({ url: `/admin/users/${id}/activate`, method: 'POST' }),
+      invalidatesTags: ['AdminUser'],
+    }),
   }),
 });
 
@@ -107,4 +117,6 @@ export const {
   useDeleteOrganizationMutation,
   useUpdateOrgPlanMutation,
   useUpdateUserRoleMutation,
+  useSuspendUserMutation,
+  useActivateUserMutation,
 } = adminApi;

@@ -146,7 +146,53 @@ export const updateUserRole = async (req: Request, res: Response) => {
 };
 
 /**
+ * POST /api/admin/users/:id/suspend
+ */
+export const suspendUser = async (req: Request, res: Response) => {
+  const { id } = req.params as { id: string };
+  const { reason } = req.body;
+
+  if (req.user!.id === id) {
+    throw new AppError('You cannot suspend yourself', HTTP_STATUS.BAD_REQUEST);
+  }
+
+  const user = await prisma.user.findUnique({ where: { id } });
+  if (!user) throw new AppError('User not found', HTTP_STATUS.NOT_FOUND);
+  
+  if (user.role === 'SUPER_ADMIN') {
+    throw new AppError('Cannot suspend a SUPER_ADMIN', HTTP_STATUS.FORBIDDEN);
+  }
+
+  const updated = await prisma.user.update({
+    where: { id },
+    data: { isSuspended: true, suspendReason: reason || 'Violation of terms' },
+    select: { id: true, name: true, email: true, isSuspended: true, suspendReason: true },
+  });
+
+  res.status(HTTP_STATUS.OK).json({ success: true, data: updated });
+};
+
+/**
+ * POST /api/admin/users/:id/activate
+ */
+export const activateUser = async (req: Request, res: Response) => {
+  const { id } = req.params as { id: string };
+
+  const user = await prisma.user.findUnique({ where: { id } });
+  if (!user) throw new AppError('User not found', HTTP_STATUS.NOT_FOUND);
+
+  const updated = await prisma.user.update({
+    where: { id },
+    data: { isSuspended: false, suspendReason: null },
+    select: { id: true, name: true, email: true, isSuspended: true },
+  });
+
+  res.status(HTTP_STATUS.OK).json({ success: true, data: updated });
+};
+
+/**
  * PUT /api/admin/organizations/:id/plan
+
  */
 export const updateOrgPlan = async (req: Request, res: Response) => {
   const { id } = req.params as { id: string };

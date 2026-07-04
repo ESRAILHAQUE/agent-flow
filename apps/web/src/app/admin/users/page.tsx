@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useGetAllUsersQuery, useUpdateUserRoleMutation } from '@/store/services/adminApi';
+import { useGetAllUsersQuery, useUpdateUserRoleMutation, useSuspendUserMutation, useActivateUserMutation } from '@/store/services/adminApi';
 import { Users, Loader2, ChevronDown, CheckCircle, XCircle } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
@@ -16,6 +16,8 @@ const ROLE_COLORS: Record<string, string> = {
 export default function AdminUsersPage() {
   const { data, isLoading } = useGetAllUsersQuery({});
   const [updateRole] = useUpdateUserRoleMutation();
+  const [suspendUser] = useSuspendUserMutation();
+  const [activateUser] = useActivateUserMutation();
 
   const users = data?.data || [];
   const meta = data?.meta;
@@ -111,8 +113,34 @@ export default function AdminUsersPage() {
                   <td className="px-4 py-4 text-xs text-zinc-500">
                     {new Date(user.createdAt).toLocaleDateString()}
                   </td>
+                  <td className="px-4 py-4 text-right">
+                    {user.isSuspended ? (
+                      <button
+                        onClick={async () => {
+                          try { await activateUser(user.id).unwrap(); toast.success('User activated'); }
+                          catch { toast.error('Failed to activate user'); }
+                        }}
+                        className="px-3 py-1.5 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 text-xs font-semibold rounded-lg transition-colors border border-emerald-500/20"
+                      >
+                        Activate
+                      </button>
+                    ) : (
+                      <button
+                        onClick={async () => {
+                          const reason = prompt('Reason for suspension:');
+                          if (reason === null) return;
+                          try { await suspendUser({ id: user.id, reason }).unwrap(); toast.success('User suspended'); }
+                          catch (err: any) { toast.error(err?.data?.error || 'Failed to suspend user'); }
+                        }}
+                        className="px-3 py-1.5 bg-red-500/10 text-red-400 hover:bg-red-500/20 text-xs font-semibold rounded-lg transition-colors border border-red-500/20"
+                      >
+                        Suspend
+                      </button>
+                    )}
+                  </td>
                 </tr>
               ))}
+
             </tbody>
           </table>
         </div>
