@@ -46,10 +46,17 @@ export interface OrganizationDetails {
   } | null;
 }
 
+export interface OrgApiKeyStatus {
+  hasOpenrouterKey: boolean;
+  hasOpenaiKey: boolean;
+  openrouterKeyMasked: string | null;
+  openaiKeyMasked: string | null;
+}
+
 export const orgApi = createApi({
   reducerPath: 'orgApi',
   baseQuery: baseQueryWithReauth,
-  tagTypes: ['Organization', 'Workspace', 'Member'],
+  tagTypes: ['Organization', 'Workspace', 'Member', 'ApiKey'],
   endpoints: (builder) => ({
     getOrganization: builder.query<ApiResponse<OrganizationDetails>, void>({
       query: () => '/org',
@@ -117,6 +124,33 @@ export const orgApi = createApi({
     }>, void>({
       query: () => '/org/analytics',
     }),
+    // BYOK — API Key management
+    getApiKeys: builder.query<ApiResponse<OrgApiKeyStatus>, void>({
+      query: () => '/org/api-keys',
+      providesTags: ['ApiKey'],
+    }),
+    saveApiKeys: builder.mutation<ApiResponse, { openrouterKey?: string; openaiKey?: string }>({
+      query: (body) => ({
+        url: '/org/api-keys',
+        method: 'PUT',
+        body,
+      }),
+      invalidatesTags: ['ApiKey'],
+    }),
+    deleteApiKeys: builder.mutation<ApiResponse, void>({
+      query: () => ({
+        url: '/org/api-keys',
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['ApiKey'],
+    }),
+    testApiKey: builder.mutation<ApiResponse, { provider: 'openrouter' | 'openai' }>({
+      query: (body) => ({
+        url: '/org/api-keys/test',
+        method: 'POST',
+        body,
+      }),
+    }),
   }),
 });
 
@@ -130,4 +164,8 @@ export const {
   useInviteMemberMutation,
   useAcceptInviteMutation,
   useGetAnalyticsQuery,
+  useGetApiKeysQuery,
+  useSaveApiKeysMutation,
+  useDeleteApiKeysMutation,
+  useTestApiKeyMutation,
 } = orgApi;

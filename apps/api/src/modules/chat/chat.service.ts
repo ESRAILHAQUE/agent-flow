@@ -6,17 +6,46 @@ import { AppError } from '../../middleware/error.middleware.js';
 import { HTTP_STATUS } from '@agentflow/shared';
 import { sendEmail } from '../../lib/email.js';
 import { RagService } from '../knowledge/rag.service.js';
-
-const openai = new OpenAI({
-  baseURL: config.llm.provider === 'openrouter' ? 'https://openrouter.ai/api/v1' : 'https://api.openai.com/v1',
-  apiKey: config.llm.provider === 'openrouter' ? config.llm.openrouterApiKey : config.llm.openaiApiKey,
-  defaultHeaders: config.llm.provider === 'openrouter' ? {
-    'HTTP-Referer': config.clientUrl,
-    'X-Title': 'AgentFlow',
-  } : undefined,
-});
+import { decrypt } from '../../lib/encryption.js';
 
 const tvly = tavily({ apiKey: config.llm.tavilyApiKey || 'MISSING_KEY' });
+
+/**
+ * Resolves the OpenAI client for a given org.
+ * Priority: org's own key → platform key → error
+ */
+async function resolveOpenAIClient(orgId: string): Promise<OpenAI> {
+  const orgKey = await prisma.orgApiKey.findUnique({ where: { orgId } });
+
+  let apiKey: string | null = null;
+  let baseURL: string | undefined;
+  let extraHeaders: Record<string, string> | undefined;
+
+  if (orgKey?.openrouterKey) {
+    apiKey = decrypt(orgKey.openrouterKey);
+    baseURL = 'https://openrouter.ai/api/v1';
+    extraHeaders = { 'HTTP-Referer': config.clientUrl, 'X-Title': 'AgentFlow' };
+  } else if (orgKey?.openaiKey) {
+    apiKey = decrypt(orgKey.openaiKey);
+  } else if (config.llm.openrouterApiKey) {
+    // Platform fallback (dev/trial)
+    apiKey = config.llm.openrouterApiKey;
+    baseURL = 'https://openrouter.ai/api/v1';
+    extraHeaders = { 'HTTP-Referer': config.clientUrl, 'X-Title': 'AgentFlow' };
+  } else if (config.llm.openaiApiKey) {
+    apiKey = config.llm.openaiApiKey;
+  }
+
+  if (!apiKey) {
+    throw new AppError(
+      'No API key configured. Please add your OpenRouter or OpenAI API key in Settings → API Keys.',
+      HTTP_STATUS.UNPROCESSABLE_ENTITY,
+    );
+  }
+
+  return new OpenAI({ baseURL, apiKey, defaultHeaders: extraHeaders });
+}
+
 
 export class ChatService {
   /**
@@ -41,10 +70,12 @@ export class ChatService {
     }
 
     try {
+      const openai = await resolveOpenAIClient(orgId);
       const agentTools: any[] = (agent.tools as any[]) || [];
       const tools: OpenAI.Chat.Completions.ChatCompletionTool[] = [];
       
       const { WeatherToolSchema, executeWeatherTool, EmailToolSchema, executeEmailTool, CrmToolSchema, executeCrmTool, DatabaseToolSchema, executeDatabaseTool } = await import('../agent/tools/index.js');
+
       
       if (agentTools.some(t => t.name === 'web_search')) {
         tools.push({
