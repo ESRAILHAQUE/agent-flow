@@ -309,6 +309,28 @@ export const deleteNotification = async (req: Request, res: Response) => {
 };
 
 /**
+ * GET /api/admin/audit-logs
+ */
+export const getAuditLogs = async (req: Request, res: Response) => {
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 50;
+
+  const logs = await prisma.auditLog.findMany({
+    skip: (page - 1) * limit,
+    take: limit,
+    orderBy: { createdAt: 'desc' },
+  });
+
+  const total = await prisma.auditLog.count();
+
+  res.status(HTTP_STATUS.OK).json({
+    success: true,
+    data: logs,
+    meta: { page, limit, total },
+  });
+};
+
+/**
  * PUT /api/admin/organizations/:id/plan
 
 

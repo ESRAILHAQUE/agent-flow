@@ -128,6 +128,10 @@ export const adminApi = createApi({
       query: (id) => ({ url: `/admin/notifications/${id}`, method: 'DELETE' }),
       invalidatesTags: ['AdminStats'],
     }),
+    getAuditLogs: builder.query<{ success: boolean; data: any[]; meta: any }, { page?: number }>({
+      query: ({ page = 1 } = {}) => `/admin/audit-logs?page=${page}&limit=50`,
+      providesTags: ['AdminStats'],
+    }),
   }),
 });
 
@@ -148,4 +152,5 @@ export const {
   useGetNotificationsQuery,
   useCreateNotificationMutation,
   useDeleteNotificationMutation,
+  useGetAuditLogsQuery,
 } = adminApi;

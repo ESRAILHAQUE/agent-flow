@@ -30,4 +30,6 @@ router.get('/notifications', adminController.getNotifications);
 router.post('/notifications', adminController.createNotification);
 router.delete('/notifications/:id', adminController.deleteNotification);
 
+router.get('/audit-logs', adminController.getAuditLogs);
+
 export default router;
