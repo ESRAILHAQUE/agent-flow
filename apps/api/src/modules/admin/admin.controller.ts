@@ -169,6 +169,11 @@ export const suspendUser = async (req: Request, res: Response) => {
     select: { id: true, name: true, email: true, isSuspended: true, suspendReason: true },
   });
 
+  const { sendSuspensionEmail } = await import('../../lib/email.js');
+  sendSuspensionEmail(updated.email, updated.name, updated.suspendReason || 'Violation of terms').catch(err => {
+    console.error('Failed to send suspension email:', err);
+  });
+
   res.status(HTTP_STATUS.OK).json({ success: true, data: updated });
 };
 

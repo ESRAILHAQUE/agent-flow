@@ -93,3 +93,21 @@ export async function sendPasswordResetEmail(email: string, name: string, token:
     `,
   });
 }
+
+export async function sendSuspensionEmail(email: string, name: string, reason: string): Promise<void> {
+  await sendEmail({
+    to: email,
+    subject: 'Action Required: Account Suspended - AgentFlow',
+    html: `
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h2>Hello, ${name}</h2>
+        <p>We are writing to inform you that your AgentFlow account has been suspended.</p>
+        <p><strong>Reason for suspension:</strong><br/>
+        <span style="color: #ef4444; font-weight: 500;">${reason}</span></p>
+        <p>While suspended, you will not be able to log into the platform or access your resources.</p>
+        <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 30px 0;" />
+        <p style="color: #6b7280; font-size: 14px;">If you believe this is a mistake, please reply to this email to contact our support team.</p>
+      </div>
+    `,
+  });
+}
