@@ -86,7 +86,7 @@ export default function DashboardPage() {
       <div className="p-8 rounded-3xl bg-gradient-to-br from-blue-900/15 to-indigo-900/10 border border-blue-500/10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
         <div className="space-y-2">
           <h1 className="text-3xl font-extrabold tracking-tight text-zinc-50">
-            Welcome back, {user.name.split(' ')[0]}! 👋
+            Welcome back, {user.name?.split(' ')[0] ?? 'there'}! 👋
           </h1>
           <p className="text-zinc-400 text-sm max-w-xl">
             Here's an overview of your AgentFlow workspace. Automate workflows, manage agents, and track performance.

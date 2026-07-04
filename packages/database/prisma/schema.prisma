@@ -144,6 +144,7 @@ model Organization {
   workflows     Workflow[]
   subscription  Subscription?
   usageRecords  UsageRecord[]
+  apiKey        OrgApiKey?
 
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -151,6 +152,27 @@ model Organization {
   @@index([slug])
   @@index([ownerId])
   @@map("organizations")
+}
+
+// ============================================================
+// Organization API Keys (BYOK — Bring Your Own Key)
+// ============================================================
+
+model OrgApiKey {
+  id              String   @id @default(cuid())
+
+  // Encrypted API keys provided by the org owner
+  openrouterKey   String?  @db.Text
+  openaiKey       String?  @db.Text
+
+  // Relations
+  orgId           String   @unique
+  organization    Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("org_api_keys")
 }
 
 // ============================================================

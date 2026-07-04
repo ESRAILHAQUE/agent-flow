@@ -44,7 +44,7 @@ export class ChatService {
       const agentTools: any[] = (agent.tools as any[]) || [];
       const tools: OpenAI.Chat.Completions.ChatCompletionTool[] = [];
       
-      const { WeatherToolSchema, executeWeatherTool, EmailToolSchema, executeEmailTool, CrmToolSchema, executeCrmTool } = await import('../agent/tools/index.js');
+      const { WeatherToolSchema, executeWeatherTool, EmailToolSchema, executeEmailTool, CrmToolSchema, executeCrmTool, DatabaseToolSchema, executeDatabaseTool } = await import('../agent/tools/index.js');
       
       if (agentTools.some(t => t.name === 'web_search')) {
         tools.push({
@@ -90,6 +90,10 @@ export class ChatService {
 
       if (agentTools.some(t => t.name === 'get_current_weather')) {
         tools.push(WeatherToolSchema as any);
+      }
+
+      if (agentTools.some(t => t.name === 'database_search')) {
+        tools.push(DatabaseToolSchema as any);
       }
 
       const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
@@ -155,6 +159,11 @@ export class ChatService {
           else if (toolCall.function.name === 'get_current_weather') {
             console.log(`[Agent Tool Execution] Fetching Weather for: "${args.location}"`);
             const result = await executeWeatherTool(args);
+            messages.push({ role: 'tool', tool_call_id: toolCall.id, content: result });
+          }
+          else if (toolCall.function.name === 'database_search') {
+            console.log(`[Agent Tool Execution] Database Search: entity="${args.entity}" query="${args.query}"`);
+            const result = await executeDatabaseTool(args, { orgId });
             messages.push({ role: 'tool', tool_call_id: toolCall.id, content: result });
           }
         }
