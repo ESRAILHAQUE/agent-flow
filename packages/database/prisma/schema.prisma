@@ -516,3 +516,39 @@ model WorkflowEdge {
   @@index([workflowId])
   @@map("workflow_edges")
 }
+
+// ============================================================
+// Super Admin Features
+// ============================================================
+
+model PlatformSetting {
+  key         String   @id
+  value       Json
+  description String?
+  updatedAt   DateTime @updatedAt
+
+  @@map("platform_settings")
+}
+
+model SystemNotification {
+  id        String   @id @default(cuid())
+  title     String
+  message   String   @db.Text
+  type      String   @default("info")
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("system_notifications")
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  actorId   String
+  action    String
+  targetId  String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  @@map("audit_logs")
+}

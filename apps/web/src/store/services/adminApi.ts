@@ -108,6 +108,26 @@ export const adminApi = createApi({
     impersonateUser: builder.mutation<{ success: boolean; data: { accessToken: string; user: any }; message: string }, string>({
       query: (id) => ({ url: `/admin/users/${id}/impersonate`, method: 'POST' }),
     }),
+    getSettings: builder.query<{ success: boolean; data: any[] }, void>({
+      query: () => '/admin/settings',
+      providesTags: ['AdminStats'],
+    }),
+    updateSetting: builder.mutation<{ success: boolean; data: any }, { key: string; value: any; description?: string }>({
+      query: ({ key, ...body }) => ({ url: `/admin/settings/${key}`, method: 'PUT', body }),
+      invalidatesTags: ['AdminStats'],
+    }),
+    getNotifications: builder.query<{ success: boolean; data: any[] }, void>({
+      query: () => '/admin/notifications',
+      providesTags: ['AdminStats'],
+    }),
+    createNotification: builder.mutation<{ success: boolean; data: any }, { title: string; message: string; type: string }>({
+      query: (body) => ({ url: '/admin/notifications', method: 'POST', body }),
+      invalidatesTags: ['AdminStats'],
+    }),
+    deleteNotification: builder.mutation<{ success: boolean }, string>({
+      query: (id) => ({ url: `/admin/notifications/${id}`, method: 'DELETE' }),
+      invalidatesTags: ['AdminStats'],
+    }),
   }),
 });
 
@@ -123,4 +143,9 @@ export const {
   useSuspendUserMutation,
   useActivateUserMutation,
   useImpersonateUserMutation,
+  useGetSettingsQuery,
+  useUpdateSettingMutation,
+  useGetNotificationsQuery,
+  useCreateNotificationMutation,
+  useDeleteNotificationMutation,
 } = adminApi;

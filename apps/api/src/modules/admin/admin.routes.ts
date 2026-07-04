@@ -23,4 +23,11 @@ router.post('/users/:id/impersonate', adminController.impersonateUser);
 router.get('/subscriptions', adminController.getAllSubscriptions);
 router.get('/payments', adminController.getAllPayments);
 
+router.get('/settings', adminController.getSettings);
+router.put('/settings/:key', adminController.updateSetting);
+
+router.get('/notifications', adminController.getNotifications);
+router.post('/notifications', adminController.createNotification);
+router.delete('/notifications/:id', adminController.deleteNotification);
+
 export default router;
