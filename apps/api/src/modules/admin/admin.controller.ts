@@ -197,6 +197,13 @@ export const activateUser = async (req: Request, res: Response) => {
     select: { id: true, name: true, email: true, isSuspended: true },
   });
 
+  const { sendActivationEmail } = await import('../../lib/email.js');
+  sendActivationEmail(updated.email, updated.name).catch(err => {
+    console.error('Failed to send activation email:', err);
+  });
+
+  await logAudit((req.user as any).userId, 'ACTIVATE_USER', id);
+
   res.status(HTTP_STATUS.OK).json({ success: true, data: updated });
 };
 

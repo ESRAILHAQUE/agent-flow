@@ -111,3 +111,22 @@ export async function sendSuspensionEmail(email: string, name: string, reason: s
     `,
   });
 }
+
+export async function sendActivationEmail(email: string, name: string): Promise<void> {
+  await sendEmail({
+    to: email,
+    subject: 'Good News: Account Reactivated - AgentFlow',
+    html: `
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h2>Hello, ${name}</h2>
+        <p>We are happy to inform you that your AgentFlow account has been reactivated!</p>
+        <p>You can now log in and access all your resources and agents as usual.</p>
+        <div style="margin: 30px 0;">
+          <a href="${config.clientUrl}/login" style="background-color: #10b981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 500;">Log In to AgentFlow</a>
+        </div>
+        <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 30px 0;" />
+        <p style="color: #6b7280; font-size: 14px;">Thank you for your patience.</p>
+      </div>
+    `,
+  });
+}
