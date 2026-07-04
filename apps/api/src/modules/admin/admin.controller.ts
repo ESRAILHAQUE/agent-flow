@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { prisma } from '@agentflow/database';
 import { HTTP_STATUS } from '@agentflow/shared';
 import { AppError } from '../../middleware/error.middleware.js';
+import { logAudit } from '../../lib/logger.js';
 
 /**
  * GET /api/admin/stats
@@ -107,6 +108,8 @@ export const getAllUsers = async (req: Request, res: Response) => {
         email: true,
         role: true,
         emailVerified: true,
+        isSuspended: true,
+        suspendReason: true,
         createdAt: true,
         ownedOrgs: { select: { id: true, name: true, plan: true } },
       },
@@ -173,6 +176,8 @@ export const suspendUser = async (req: Request, res: Response) => {
   sendSuspensionEmail(updated.email, updated.name, updated.suspendReason || 'Violation of terms').catch(err => {
     console.error('Failed to send suspension email:', err);
   });
+
+  await logAudit((req.user as any).userId, 'SUSPEND_USER', id, { reason });
 
   res.status(HTTP_STATUS.OK).json({ success: true, data: updated });
 };
@@ -285,6 +290,8 @@ export const updateSetting = async (req: Request, res: Response) => {
     update: { value, description },
     create: { key, value, description },
   });
+
+  await logAudit((req.user as any).userId, 'UPDATE_SETTING', key, { value });
 
   res.status(HTTP_STATUS.OK).json({ success: true, data: updated });
 };
