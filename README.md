@@ -42,7 +42,8 @@ AgentFlow is an enterprise-grade AI automation platform that unifies Large Langu
 | 📚 **RAG Knowledge Base** | Upload PDFs, DOCXs, and TXTs to build a vector database for context-aware AI responses |
 | 🔧 **Dynamic Tool Calling** | Native integrations for Weather, Email, CRM sync, and internal Databases |
 | 🏢 **Multi-Tenant RBAC** | Super Admin, Org Owner, and Team Member roles with strict data isolation |
-| 💳 **Stripe Billing** | Built-in subscription management (Free, Pro, Enterprise) with usage tracking |
+| 💳 **Stripe Billing & Quotas** | Built-in subscription management (Free, Pro, Enterprise) with hard plan limits and usage tracking |
+| 🔑 **BYOK (Bring Your Own Key)** | Users can provide their own OpenAI/OpenRouter API keys (stored with AES-256 encryption) for custom billing |
 | 📊 **Analytics Dashboard** | Real-time usage metrics, token consumption, and agent performance tracking |
 | 🔐 **Secure Auth** | JWT-based authentication with email verification and Google OAuth support |
 
@@ -535,7 +536,8 @@ The REST API is structured around feature modules:
 - **Authentication:** Stateless JWT with short-lived access tokens and rotating refresh tokens.
 - **Authorization:** Role-Based Access Control (RBAC) — `SUPER_ADMIN`, `ORG_OWNER`, `TEAM_MEMBER`.
 - **Data Isolation:** All queries are scoped by `orgId` ensuring strict multi-tenant separation.
-- **Rate Limiting:** All AI endpoints are protected against abuse and API cost overruns.
+- **Data at Rest:** Organization API keys (BYOK) are stored securely using AES-256-CBC encryption.
+- **Rate & Plan Limiting:** AI endpoints are protected against abuse. Hard quotas (Agent/Document limits) are enforced by subscription tier.
 - **Password Hashing:** Bcrypt with configurable salt rounds.
 - **Input Validation:** Zod schemas validate all incoming request payloads.
 - **CORS:** Strict origin whitelisting in production.
