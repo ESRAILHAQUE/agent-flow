@@ -152,7 +152,7 @@ export const suspendUser = async (req: Request, res: Response) => {
   const { id } = req.params as { id: string };
   const { reason } = req.body;
 
-  if (req.user!.id === id) {
+  if ((req.user as any).userId === id) {
     throw new AppError('You cannot suspend yourself', HTTP_STATUS.BAD_REQUEST);
   }
 
@@ -196,7 +196,7 @@ export const activateUser = async (req: Request, res: Response) => {
 export const impersonateUser = async (req: Request, res: Response) => {
   const { id } = req.params as { id: string };
 
-  if (req.user!.id === id) {
+  if ((req.user as any).userId === id) {
     throw new AppError('You are already logged in as yourself', HTTP_STATUS.BAD_REQUEST);
   }
 
@@ -209,7 +209,7 @@ export const impersonateUser = async (req: Request, res: Response) => {
   if (user.isSuspended) throw new AppError('Cannot impersonate a suspended user', HTTP_STATUS.FORBIDDEN);
 
   // We need to import token generation utilities
-  const { generateTokens } = await import('../../lib/jwt.js');
+  const { signAccessToken, signRefreshToken } = await import('../../lib/jwt.js');
   
   // Find primary org context
   const primaryOrgId = user.ownedOrgs.length > 0 
@@ -218,11 +218,17 @@ export const impersonateUser = async (req: Request, res: Response) => {
       ? user.teamMembers[0].team.orgId 
       : undefined;
 
-  const { accessToken, refreshToken } = generateTokens({
-    id: user.id,
+  const accessToken = signAccessToken({
+    userId: user.id,
     email: user.email,
     role: user.role,
     orgId: primaryOrgId,
+  });
+
+  const refreshToken = signRefreshToken({
+    userId: user.id,
+    email: user.email,
+    role: user.role,
   });
 
   await prisma.user.update({

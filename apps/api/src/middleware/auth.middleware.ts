@@ -21,7 +21,7 @@ export async function authenticate(req: Request, _res: Response, next: NextFunct
     // Verify user is not suspended (quick db check to ensure immediate blocking)
     const { prisma } = await import('@agentflow/database');
     const user = await prisma.user.findUnique({
-      where: { id: payload.id },
+      where: { id: (payload as any).userId },
       select: { isSuspended: true, suspendReason: true },
     });
 
