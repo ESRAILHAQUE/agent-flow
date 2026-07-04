@@ -4,6 +4,10 @@ import React from 'react';
 import { useGetAllUsersQuery, useUpdateUserRoleMutation, useSuspendUserMutation, useActivateUserMutation, useImpersonateUserMutation } from '@/store/services/adminApi';
 import { Users, Loader2, ChevronDown, CheckCircle, XCircle } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import Swal from 'sweetalert2';
+import withReactContent from 'sweetalert2-react-content';
+
+const MySwal = withReactContent(Swal);
 
 const ROLES = ['SUPER_ADMIN', 'ORG_OWNER', 'TEAM_MEMBER'];
 
@@ -150,10 +154,32 @@ export default function AdminUsersPage() {
                     ) : (
                       <button
                         onClick={async () => {
-                          const reason = prompt('Reason for suspension:');
-                          if (reason === null) return;
-                          try { await suspendUser({ id: user.id, reason }).unwrap(); toast.success('User suspended'); }
-                          catch (err: any) { toast.error(err?.data?.error || 'Failed to suspend user'); }
+                          const { value: reason, isConfirmed } = await MySwal.fire({
+                            title: 'Suspend User',
+                            input: 'text',
+                            inputLabel: 'Reason for suspension',
+                            inputPlaceholder: 'Enter reason...',
+                            showCancelButton: true,
+                            confirmButtonText: 'Suspend',
+                            confirmButtonColor: '#ef4444',
+                            cancelButtonColor: '#3f3f46',
+                            background: '#18181b',
+                            color: '#f4f4f5',
+                            inputValidator: (value) => {
+                              if (!value) {
+                                return 'You need to write something!';
+                              }
+                            }
+                          });
+
+                          if (isConfirmed && reason) {
+                            try { 
+                              await suspendUser({ id: user.id, reason }).unwrap(); 
+                              toast.success('User suspended'); 
+                            } catch (err: any) { 
+                              toast.error(err?.data?.error || 'Failed to suspend user'); 
+                            }
+                          }
                         }}
                         className="px-3 py-1.5 bg-red-500/10 text-red-400 hover:bg-red-500/20 text-xs font-semibold rounded-lg transition-colors border border-red-500/20"
                       >
