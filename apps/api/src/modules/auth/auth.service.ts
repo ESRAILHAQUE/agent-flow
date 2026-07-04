@@ -296,6 +296,10 @@ export class AuthService {
       throw new AppError('Invalid email or password', HTTP_STATUS.UNAUTHORIZED);
     }
 
+    if (!user.emailVerified) {
+      throw new AppError('Please verify your email address before logging in.', HTTP_STATUS.FORBIDDEN);
+    }
+
     // Resolve an active organization ID context for the user
     const orgId = user.ownedOrgs[0]?.id || user.teamMembers[0]?.team.orgId;
 
