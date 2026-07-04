@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { AgentController } from './agent.controller.js';
 import { authenticate, requireOrg } from '../../middleware/auth.middleware.js';
+import { requireWithinLimit } from '../../middleware/plan-limits.middleware.js';
 
 const router = Router();
 
@@ -10,7 +11,7 @@ router.use(requireOrg);
 
 router.get('/', AgentController.getAgents);
 router.get('/:id', AgentController.getAgentById);
-router.post('/', AgentController.createAgent);
+router.post('/', requireWithinLimit('agents'), AgentController.createAgent);
 router.put('/:id', AgentController.updateAgent);
 router.delete('/:id', AgentController.deleteAgent);
 

@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { authenticate, requireOrg } from '../../middleware/auth.middleware.js';
+import { requireWithinLimit } from '../../middleware/plan-limits.middleware.js';
 import * as workflowController from './workflow.controller.js';
 
 const router = Router();
@@ -9,7 +10,7 @@ router.use(requireOrg);
 
 router.route('/')
   .get(workflowController.getWorkflows)
-  .post(workflowController.createWorkflow);
+  .post(requireWithinLimit('workflows'), workflowController.createWorkflow);
 
 router.route('/:id')
   .get(workflowController.getWorkflowById)
